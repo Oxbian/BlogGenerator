@@ -67,7 +67,6 @@ def generateIndex(data, env_vars):
     for page in data:
         # Checking if there is metadata, if not we don't add the page in the index
         if page['date'] != '01-01-0001':
-            print(page['date'])
             index_content += ('\t\t\t\t<li><a href="' + page['filepath'] + '">' + page['title'] + '</a><p>'
             + page['date'] + '</p></li>\n')
     index_content += "\t\t\t</ul>"
