@@ -31,17 +31,17 @@ def parseline(line):
     return line
 
 
-def parsemd(env_vars, filepath):
+def parsemd(filepath, env_vars):
     """
     Parse the markdown file and return the content to put into the template page
     env_vars: dictionnary of environment variable
     filepath: Filepath of the markdown file
     return: a dictionnary containing title, metadata, local path, content for HTML
     """
-    content = {'content': '', 'title': '', 'date': '', 'description': '', 'filepath': env_vars['pages_path'].replace(env_vars['parent_path'] + '/', '') 
+    content = {'content': '', 'title': '', 'date': '01-01-0001', 'description': '', 'filepath': env_vars['pages_path'].replace(env_vars['parent_path'] + '/', '') 
      + '/' + filepath.split('.')[0] + '.html'}
     
-    inmeta, inquote, inpre, inul = False, False, False
+    inmeta, inquote, inpre, inul = False, False, False, False
    
     # Reading the content of the file and transform into html 
     for line in open(env_vars['markdown_path'] + '/' + filepath, "r"):
@@ -59,7 +59,7 @@ def parsemd(env_vars, filepath):
             content['date'] = line.split(':')[1].strip()
         
         # Getting the description metadata
-        if line.startswith('description:'):
+        if inmeta and line.startswith('description:'):
             content['description'] = line.split(':')[1].strip()
         
         # Close quote if not quoting
@@ -89,12 +89,12 @@ def parsemd(env_vars, filepath):
                 inquote = True
 
         # Checking if it's a list
-        elif line.startswith("-"):
+        elif line.startswith("-") and not line.startswith("---"):
             if inul:
                 content['content'] += "</li>\n"
-                content['content'] += "<li>" + parseline(line.lstrip("- "))
+                content['content'] += "\t<li>" + parseline(line.lstrip("- "))
             else:
-                content['content'] += "<ul><li>" + parseline(line.lstrip("- "))
+                content['content'] += "<ul>\n\t<li>" + parseline(line.lstrip("- "))
                 inul = True
         
         # Checking if it's a title
@@ -106,7 +106,7 @@ def parsemd(env_vars, filepath):
             content['title'] += parseline(line.lstrip("# "))
 
         # else it's a paragraph
-        elif line != " " and line != "":
+        elif line != " " and line != "" and not inmeta and not line.startswith("---"):
             content['content'] += "<p>" + parseline(line) + "</p>\n"
 
     # Checking all balise are closed
@@ -115,7 +115,7 @@ def parsemd(env_vars, filepath):
         inquote = False
 
     if inul:
-        content['content'] += "</li></ul>\n"
+        content['content'] += "</li>\n</ul>\n"
         inul = False
         
     if inpre:
