@@ -3,7 +3,7 @@
 This repo contains a python script that can create a blog from a list of markdown files. You just need markdown files, a page template, an index page template, an atom feed template and an atom post template.  
 If you need some example check my [blog source code](https://git.arka.rocks/Oxbian/ArkaBlog).  
 
-## How to use it
+## How to setup
 
 First you will need some compatible written markdown files, the supported markdown is listed below.  
 After that, you will need to setup the .env file with your configuration and create template for the page, index, Atom Feed & Atom post.  
@@ -30,6 +30,11 @@ Don't create / use virtual env, just install the requirements on your global pyt
 ```bash
 pip intall -r requirements.txt
 ```
+
+## How to use it 
+
+Now that everything is configured, you can just run `python3 generator.py` and the page will be generated.  
+**Be careful if there is no metadata in your markdown file the page will not be added into the index page.**  
 
 ## Supported markdown
 
@@ -80,3 +85,8 @@ If you have any troube you can contact me by email, matrix, or open an issue. If
 ## License
 
 This project is under the GPLV3 license. You can use, modify, as long as the copy is opensource under the GPLV3 too.
+
+## Credits
+
+This project was inspired by the [blog generator](https://git.sr.ht/~lioploum/ploum.net) made by [Ploum](https://ploum.net), thanks to him for his work.
+
