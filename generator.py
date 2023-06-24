@@ -45,7 +45,9 @@ def generateAtomFeed(posts, env_vars):
     # Generate RSS / Atom post
     atom_content = []
     for post in posts:
-        generatePageXML(post, env_vars)
+        # Checking if there is metadata, if not we don't create a RSS / Atom post
+        if post['date'] != '':
+            atom_content.append(generatePageXML(post, env_vars))
 
     # Generate RSS / atom feed
     template = open(env_vars['template_atom_feed'], 'r').read()
@@ -63,8 +65,10 @@ def generateIndex(data, env_vars):
     # Create the index content
     index_content = "<ul>"
     for page in data:
-        index_content += '<li><a href="' + page['filepath'] + '">' + page['title'] + '</a><p>'
-        + page['date'] + '</p></li>\n'
+        # Checking if there is metadata, if not we don't add the page in the index
+        if page['date'] != '':
+            index_content += '<li><a href="' + page['filepath'] + '">' + page['title'] + '</a><p>'
+            + page['date'] + '</p></li>\n'
     index_content += "</ul>"
 
     # Generate main page
