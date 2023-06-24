@@ -52,7 +52,7 @@ def generateAtomFeed(posts, env_vars):
     # Generate RSS / atom feed
     template = open(env_vars['template_atom_feed'], 'r').read()
     output = open(env_vars['parent_path'] + '/atom.xml', 'w')
-    output.write(template.replace('$CONTENT', atom_content).replace('$DATE', datetime.today().strftime("%d-%m-%Y")))
+    output.write(template.replace('$CONTENT', atom_content).replace('$DATE', datetime.today().strftime("%Y-%m-%d")))
     output.close()
 
 
