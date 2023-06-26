@@ -1,5 +1,6 @@
 import os
-import dotenv
+import shutil
+from dotenv import load_dotenv
 from markdown_parser import *
 from datetime import datetime
 
@@ -56,6 +57,32 @@ def generateAtomFeed(posts, env_vars):
     output.close()
 
 
+def generateTagsPages(tags_dict, env_vars):
+    """
+    Generate page for each tag, which link to each content tagged
+    tags_dict: A dictionnary with tag name as key, and a list of post (title & url) with that tag
+    env_vars: dictionnary of env variables
+    """
+    if not os.path.exists(env_vars['pages_path'] + '/tags'):
+        os.mkdir(env_vars['pages_path'] + '/tags')
+
+    # Going on every tag and creating it's page
+    for tag, pages in tags_dict.items():
+        template = open(env_vars['template_tags'], 'r').read()
+        # Generating the HTML page
+        output = open(env_vars['pages_path'] + '/tags/' + tag.replace(' ', '_') + '.html', 'w')
+
+        # Adding all links for page with this tag
+        content = "<ul>\n"
+        for page in pages:
+            content += '\t\t\t\t<li><a href="' + '../../' + page[1] + '">' + page[0] + '</a></li>\n'
+        content += "\t\t\t</ul>\n"
+
+        output.write(template.replace("$CONTENT", content).replace("$TITLE", tag))
+        output.close()
+    pass
+
+
 def generateIndex(data, env_vars):
     """
     Generate the main page
@@ -63,13 +90,29 @@ def generateIndex(data, env_vars):
     env_vars: dictionnary of env variables
     """
     # Create the index content
+    tags_dict = {}
     index_content = "<ul>\n"
+
+    # Getting data of each page
     for page in data:
         # Checking if there is metadata, if not we don't add the page in the index
         if page['date'] != '01-01-0001':
             index_content += ('\t\t\t\t<li><a href="' + page['filepath'] + '">' + page['title'] + '</a><p>'
             + page['date'] + '</p></li>\n')
-    index_content += "\t\t\t</ul>"
+
+        # Adding page into tags categorie
+        for tag in page['tags']:
+            if tag not in tags_dict:
+                tags_dict[tag] = []
+            tags_dict[tag].append([page['title'], page['filepath']])
+        
+    index_content += '\t\t\t</ul>\n\t\t\t<h2>Tags:</h2>\n\t\t\t<div class="tags">\n\t\t\t\t<ul>\n'
+
+    # Adding tags browsing into the page
+    for tag in list(tags_dict.keys()):
+        index_content += ('\t\t\t\t\t<li><a href="' + env_vars['pages_path'].replace(env_vars['parent_path'] + '/', '') + '/tags/' + tag.replace(' ', '_') + '.html' + '">' + tag + '</a></li>\n')
+        generateTagsPages(tags_dict, env_vars)
+    index_content += '\t\t\t\t</ul>\n\t\t\t</div>'
 
     # Generate main page
     template = open(env_vars['template_index'], 'r').read()
@@ -80,14 +123,14 @@ def generateIndex(data, env_vars):
 
 if __name__=="__main__":
     # Load .env file into python environment
-    dotenv.load_dotenv()
+    load_dotenv()
 
     # Color for print
     color = { 'red': '\033[1;31m', 'green' : '\033[1;32m', 'end' : '\033[0m'}
 
     # Checking if all environment variable are present  & setup
     env = ['PARENT_PATH', 'PAGES_PATH', 'MARKDOWN_PATH', 'TEMPLATE_PAGE', 'TEMPLATE_ATOM_POST', 
-           'TEMPLATE_ATOM_FEED', 'WEBSITE_URL', 'TEMPLATE_INDEX']
+           'TEMPLATE_ATOM_FEED', 'WEBSITE_URL', 'TEMPLATE_INDEX', 'TEMPLATE_TAGS']
     for variable in env:
         if variable not in os.environ:
             print(f"{color['red']}{variable} isn't present in the .env file, please fix this {color['end']}")
@@ -101,12 +144,11 @@ if __name__=="__main__":
     env_vars = { 'parent_path' : os.environ.get('PARENT_PATH'), 'pages_path' : os.environ.get('PAGES_PATH')
     , 'markdown_path' : os.environ.get('MARKDOWN_PATH'), 'template_page' : os.environ.get('TEMPLATE_PAGE')
     , 'template_atom_post' : os.environ.get('TEMPLATE_ATOM_POST'), 'template_atom_feed' : os.environ.get('TEMPLATE_ATOM_FEED')
-    , 'website_url' : os.environ.get('WEBSITE_URL'), 'template_index' : os.environ.get('TEMPLATE_INDEX') }
+    , 'website_url' : os.environ.get('WEBSITE_URL'), 'template_index' : os.environ.get('TEMPLATE_INDEX'), 'template_tags' : os.environ.get('TEMPLATE_TAGS') }
 
     # Checking if generate folder exist to remove previouly generated content, if not create it
     if os.path.exists(env_vars['pages_path']):
-        for file in os.listdir(env_vars['pages_path']):
-            os.remove(env_vars['pages_path'] + '/' + file)
+        shutil.rmtree(env_vars['pages_path'])
         os.remove(env_vars['parent_path'] + '/atom.xml')
         os.remove(env_vars['parent_path'] + '/index.html')
     else:

@@ -65,11 +65,13 @@ Example:
 ---
 date: 31-12-1999
 description: new year
+tags: new year, happy, test
 ---
 ```
 
 - `date:` for date
 - `description:` for description
+- `tags:` for tags
 
 ## Dependencies
 

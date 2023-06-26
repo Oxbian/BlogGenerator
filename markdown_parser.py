@@ -38,7 +38,7 @@ def parsemd(filepath, env_vars):
     filepath: Filepath of the markdown file
     return: a dictionnary containing title, metadata, local path, content for HTML
     """
-    content = {'content': '', 'title': '', 'date': '01-01-0001', 'description': '', 'filepath': env_vars['pages_path'].replace(env_vars['parent_path'] + '/', '') 
+    content = {'content': '', 'title': '', 'date': '01-01-0001', 'description': '', 'tags' : [], 'filepath': env_vars['pages_path'].replace(env_vars['parent_path'] + '/', '') 
      + '/' + filepath.split('.')[0] + '.html'}
     
     inmeta, inquote, inpre, inul = False, False, False, False
@@ -61,6 +61,15 @@ def parsemd(filepath, env_vars):
         # Getting the description metadata
         if inmeta and line.startswith('description:'):
             content['description'] = line.split(':')[1].strip()
+
+        # Getting the tags metadata
+        if inmeta and line.startswith('tags:'):
+            tags = line.split(':')[1].split(',')
+
+            # Removing leading and ending white spaces
+            for i in range(0, len(tags)):
+                tags[i] = tags[i].strip()
+            content['tags'] = tags
         
         # Close quote if not quoting
         if inquote and not line.startswith(">"):
