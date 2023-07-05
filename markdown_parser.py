@@ -53,6 +53,7 @@ def parse_md(filepath, env_vars):
         "tags": [],
         "filepath": env_vars["pages_path"].replace(env_vars["parent_path"] + "/", "")
         + "/"
+        + env_vars["lang"] + "/"
         + filepath.split(".")[0]
         + ".html",
     }
@@ -60,7 +61,7 @@ def parse_md(filepath, env_vars):
     inmeta, inquote, inpre, inul = False, False, False, False
 
     # Reading the content of the file and transform into html
-    for line in open(env_vars["markdown_path"] + "/" + filepath, "r"):
+    for line in open(env_vars["markdown_path"] + "/" + env_vars["lang"] + "/" + filepath, "r"):
         line = line.strip()
 
         # Open the metadata

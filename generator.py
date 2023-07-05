@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 from dotenv import load_dotenv
 from markdown_parser import parse_md
@@ -14,13 +15,11 @@ def md2html(filename, env_vars):
     """
     # Getting parsed content of markdown file & page template
     data = parse_md(filename, env_vars)
-    template = open(env_vars['template_page'], 'r').read()
+    template = open(env_vars['templates_folder'] + "/" + env_vars["lang"] + "/page_template.html", 'r').read()
 
     # Generating the HTML page
-    output = open(env_vars['pages_path'] + '/' +
-                  filename.split('.')[0] + '.html', 'w')
-    output.write(template.replace("$CONTENT", data['content']).replace(
-        "$TITLE", data['title']).replace("$DATE", data['date']).replace("$DESC", data['description']))
+    output = open(env_vars['pages_path'] + '/' + env_vars["lang"] + "/" + filename.split('.')[0] + '.html', 'w')
+    output.write(template.replace("$CONTENT", data['content']).replace("$TITLE", data['title']).replace("$DATE", data['date']).replace("$DESC", data['description']))
     output.close()
 
     return data
@@ -33,7 +32,7 @@ def generate_page_XML(data, env_vars):
     env_vars: dictionnary of env variables
     return: RSS / Atom post
     """
-    template = open(env_vars['template_atom_post'], 'r').read()
+    template = open(env_vars['templates_folder'] + "/" + env_vars["lang"] + "/atom_post_template.xml", 'r').read()
     date = datetime.strptime(data['date'], "%d-%m-%Y").isoformat() + "Z"
     return template.replace("$TITLE", data['title']).replace("$DATE", date).replace("$CONTENT", data['content']).replace("$URL", env_vars['website_url'] + data['filepath'])
 
@@ -52,10 +51,9 @@ def generate_atom_feed(posts, env_vars):
             atom_content += generate_page_XML(post, env_vars)
 
     # Generate RSS / atom feed
-    template = open(env_vars['template_atom_feed'], 'r').read()
-    output = open(env_vars['parent_path'] + '/atom.xml', 'w')
-    output.write(template.replace('$CONTENT', atom_content).replace(
-        '$DATE', datetime.today().strftime("%Y-%m-%d")))
+    template = open(env_vars['templates_folder'] + "/" + env_vars["lang"] + "/atom_feed_template.xml", 'r').read()
+    output = open(env_vars['parent_path'] + "/atom_" + env_vars["lang"] + ".xml", "w")
+    output.write(template.replace('$CONTENT', atom_content).replace('$DATE', datetime.today().strftime("%Y-%m-%d")))
     output.close()
 
 
@@ -65,25 +63,22 @@ def generate_tags_pages(tags_dict, env_vars):
     tags_dict: A dictionnary with tag name as key, and a list of post (title & url) with that tag
     env_vars: dictionnary of env variables
     """
-    if not os.path.exists(env_vars['pages_path'] + '/tags'):
-        os.mkdir(env_vars['pages_path'] + '/tags')
+    if not os.path.exists(env_vars['pages_path'] + "/" + env_vars["lang"] + '/tags'):
+        os.mkdir(env_vars['pages_path'] + "/" + env_vars["lang"] + '/tags')
 
     # Going on every tag and creating it's page
     for tag, pages in tags_dict.items():
-        template = open(env_vars['template_tags'], 'r').read()
+        template = open(env_vars['templates_folder'] + "/" + env_vars["lang"] + "/tags_template.html", 'r').read()
         # Generating the HTML page
-        output = open(env_vars['pages_path'] + '/tags/' +
-                      tag.replace(' ', '_') + '.html', 'w')
+        output = open(env_vars['pages_path'] + "/" + env_vars["lang"] + '/tags/' + tag.replace(' ', '_') + '.html', 'w')
 
         # Adding all links for page with this tag
         content = "<ul>\n"
         for page in pages:
-            content += '\t\t\t\t<li><a href="' + '../../' + \
-                page[1] + '">' + page[0] + '</a></li>\n'
+            content += '\t\t\t\t<li><a href="' + '../../../' + page[1] + '">' + page[0] + '</a></li>\n'
         content += "\t\t\t</ul>\n"
 
-        output.write(template.replace(
-            "$CONTENT", content).replace("$TITLE", tag))
+        output.write(template.replace("$CONTENT", content).replace("$TITLE", tag))
         output.close()
     pass
 
@@ -116,15 +111,30 @@ def generate_index(data, env_vars):
     # Adding tags browsing into the page
     for tag in list(tags_dict.keys()):
         index_content += ('\t\t\t\t\t<li><a href="' + env_vars['pages_path'].replace(
-            env_vars['parent_path'] + '/', '') + '/tags/' + tag.replace(' ', '_') + '.html' + '">' + tag + '</a></li>\n')
+            env_vars['parent_path'] + '/', '') + "/" + env_vars["lang"] + '/tags/' + tag.replace(' ', '_') + '.html' + '">' + tag + '</a></li>\n')
         generate_tags_pages(tags_dict, env_vars)
     index_content += '\t\t\t\t</ul>\n\t\t\t</div>'
 
     # Generate main page
-    template = open(env_vars['template_index'], 'r').read()
-    output = open(env_vars['parent_path'] + '/index.html', 'w')
+    template = open(env_vars['templates_folder'] + "/" + env_vars["lang"] + "/index_template.html", 'r').read()
+    output = open(env_vars['parent_path'] + "/index_" + env_vars["lang"] + ".html", 'w')
     output.write(template.replace('$CONTENT', index_content))
     output.close()
+
+def check_env():
+    """Check environment variables are set and not empty"""
+    env = ['PARENT_PATH', 'PAGES_PATH', 'MARKDOWN_PATH', 'TEMPLATES_FOLDER', 'WEBSITE_URL', 'LANGS']
+    for variable in env:
+        if variable not in os.environ:
+            print(
+                f"{color['red']}{variable} isn't present in the .env file, please fix this {color['end']}")
+            sys.exit()
+
+        if (os.environ.get(variable) or '') == '':
+            print(
+                f"{color['red']}{variable} isn't setup in the .env file, please fix this {color['end']}")
+            sys.exit()
+
 
 
 if __name__ == "__main__":
@@ -135,46 +145,42 @@ if __name__ == "__main__":
     color = {'red': '\033[1;31m', 'green': '\033[1;32m', 'end': '\033[0m'}
 
     # Checking if all environment variable are present & setup
-    env = ['PARENT_PATH', 'PAGES_PATH', 'MARKDOWN_PATH', 'TEMPLATE_PAGE', 'TEMPLATE_ATOM_POST',
-           'TEMPLATE_ATOM_FEED', 'WEBSITE_URL', 'TEMPLATE_INDEX', 'TEMPLATE_TAGS']
-    for variable in env:
-        if variable not in os.environ:
-            print(
-                f"{color['red']}{variable} isn't present in the .env file, please fix this {color['end']}")
-            quit()
-
-        if (os.environ.get(variable) or '') == '':
-            print(
-                f"{color['red']}{variable} isn't setup in the .env file, please fix this {color['end']}")
-            quit()
+    check_env()
 
     # Getting env variable
-    env_vars = {'parent_path': os.environ.get('PARENT_PATH'), 'pages_path': os.environ.get('PAGES_PATH'), 'markdown_path': os.environ.get('MARKDOWN_PATH'), 'template_page': os.environ.get('TEMPLATE_PAGE'), 'template_atom_post': os.environ.get(
-        'TEMPLATE_ATOM_POST'), 'template_atom_feed': os.environ.get('TEMPLATE_ATOM_FEED'), 'website_url': os.environ.get('WEBSITE_URL'), 'template_index': os.environ.get('TEMPLATE_INDEX'), 'template_tags': os.environ.get('TEMPLATE_TAGS')}
+    env_vars = {'parent_path': os.environ.get('PARENT_PATH'), 'pages_path': os.environ.get('PAGES_PATH'), 'markdown_path': os.environ.get('MARKDOWN_PATH'), 'templates_folder': os.environ.get('TEMPLATES_FOLDER'), 'website_url': os.environ.get('WEBSITE_URL')}
+    langs = os.environ.get('LANGS').lower().split(',')
 
     # Checking if generate folder exist to remove previouly generated content, if not create it
     if os.path.exists(env_vars['pages_path']):
         shutil.rmtree(env_vars['pages_path'])
-        os.remove(env_vars['parent_path'] + '/atom.xml')
-        os.remove(env_vars['parent_path'] + '/index.html')
+        for lang in langs:
+            os.remove(env_vars['parent_path'] + "/atom_" + lang + ".xml")
+            os.remove(env_vars['parent_path'] + "/index_" + lang + ".html")
     else:
         os.mkdir(env_vars['pages_path'])
+        for lang in langs:
+            os.mkdir(env_vars['pages_path'] + "/" + lang)
 
     data = []  # A list for data generated by md2html
 
-    # Generate all markdown file
-    for file in os.listdir(env_vars['markdown_path']):
+    # Generate for each lang
+    for lang in langs:
+        env_vars['lang'] = lang
 
-        # Generating HTML page
-        print(f"{color['green']}Generating file: {file} {color['end']}")
-        data.append(md2html(file, env_vars))
+        # Generate all markdown file
+        for file in os.listdir(env_vars['markdown_path'] + "/" + lang):
 
-    sorted_data = sorted(data, key=lambda x: datetime.strptime(x['date'], '%d-%m-%Y'))
+            # Generating HTML page
+            print(f"{color['green']}Generating file: {file} in {lang} {color['end']}")
+            data.append(md2html(file, env_vars))
 
-    # Generating atom feed
-    print(f"{color['green']}Generating RSS / Atom feed {color['end']}")
-    generate_atom_feed(data, env_vars)
+        sorted_data = sorted(data, key=lambda x: datetime.strptime(x['date'], '%d-%m-%Y'))
 
-    # Generating index
-    print(f"{color['green']}Generating main page {color['end']}")
-    generate_index(data, env_vars)
+        # Generating atom feed
+        print(f"{color['green']}Generating RSS / Atom feed in {lang} {color['end']}")
+        generate_atom_feed(data, env_vars)
+
+        # Generating index
+        print(f"{color['green']}Generating main page in {lang} :{color['end']}")
+        generate_index(data, env_vars)
