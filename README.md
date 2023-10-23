@@ -14,21 +14,22 @@ There is two solutions:
 ### First solution virtual env
 
 You can create a [virtual python environment](https://docs.python.org/3/library/venv.html) 
-```bash
+```sh
 python -m venv .venv
 ``` 
+
 and install the `requirements.txt`  
 
-```bash
-pip intall -r requirements.txt
+```sh
+.venv/bin/pip install -r requirements.txt
 ```
 
 ### Second solution install on your global python
 
 Don't create / use virtual env, just install the requirements on your global python.
 
-```bash
-pip intall -r requirements.txt
+```sh
+pip install -r requirements.txt
 ```
 
 ## How to use it 
