@@ -11,12 +11,13 @@ def parse_line(line):
     html.escape(line)
 
     # Checking if there is strong or emphasized
-    while "*" in line:
-        line = line.replace("*", "<em>", 1)
-        line = line.replace("*", "</em>", 1)
     while "**" in line:
         line = line.replace("**", "<strong>", 1)
         line = line.replace("**", "</strong>", 1)
+    while "*" in line:
+        line = line.replace("*", "<em>", 1)
+        line = line.replace("*", "</em>", 1)
+
 
     # Checking if there is image
     while "![" in line and "]" in line:

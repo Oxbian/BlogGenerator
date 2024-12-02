@@ -78,13 +78,6 @@ tags: new year, happy, test
 
 This project only has `python-dotenv` as dependencies for loading environment variable into python.  
 
-## Trouble & help
-
-If you have any troube you can contact me by email, matrix, or open an issue. If you are a beginner prefer using email, thanks.
-
-- Email: oxbian.noch@simplelogin.com
-- Matrix: @oxbian:matrix.org
-
 ## License
 
 This project is under the GPLV3 license. You can use, modify, as long as the copy is opensource under the GPLV3 too.

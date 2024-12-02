@@ -179,8 +179,8 @@ if __name__ == "__main__":
 
         # Generating atom feed
         print(f"{color['green']}Generating RSS / Atom feed in {lang} {color['end']}")
-        generate_atom_feed(data, env_vars)
+        generate_atom_feed(sorted_data, env_vars)
 
         # Generating index
         print(f"{color['green']}Generating main page in {lang} :{color['end']}")
-        generate_index(data, env_vars)
+        generate_index(sorted_data, env_vars)
